@@ -1,0 +1,78 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bagaimana jika listrik tidak ditemukan?</title>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:system-ui,sans-serif}
+#cap{position:fixed;left:6%;right:6%;bottom:12%;text-align:center;color:#fff;font:800 5.2vmin/1.25 system-ui;text-shadow:0 .4vmin 1.2vmin #000,0 0 .6vmin #000}
+#go{position:fixed;inset:0;margin:auto;width:40vmin;height:12vmin;font-size:4vmin;border:0;border-radius:6vmin;background:#ffb300}</style></head><body>
+<div id="cap"></div><button id="go">▶ Putar</button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ====== EDIT DI SINI: waktu mulai tiap adegan (detik) sesuai voice.mp3 ======
+const T=[0,8.1,18.1,23.9,31.3,40.5,44.5,50.3,54.7];
+const CAP=['Bayangkan bangun pagi... alarm tidak berbunyi','Kota gelap total saat malam','Tidak ada kulkas, makanan cepat busuk','Rumah sakit tanpa mesin modern','Tanpa internet, TV, dan media sosial','TikTok pun tidak akan ada','Dunia berjalan puluhan tahun lebih lambat','Apa yang paling kamu rindukan?'];
+// ====== SFX: [detik, jenis] ======
+const CUES=[[0.2,'alarm'],[5.6,'off'],[7.4,'whoosh'],[8.2,'whoosh'],[10,'boom'],[12.4,'off'],[14.1,'off'],[16.2,'torch'],[18.2,'pop'],[20.5,'rot'],[22.5,'whoosh'],[24,'beep'],[25.4,'beep'],[26.6,'off'],[28.4,'beep'],[29.8,'off'],[30.4,'flat'],[31.4,'whoosh'],[32.4,'pop'],[33.6,'pop'],[34.8,'pop'],[36.5,'whoosh'],[38.5,'tick'],[40.6,'glitch'],[43,'off'],[44.6,'boom'],[45.5,'tick'],[46.5,'tick'],[47.5,'tick'],[48.5,'tick'],[49.5,'whoosh'],[50.4,'ding'],[52,'pop']];
+const W=innerWidth,H=innerHeight,R=new URLSearchParams(location.search).has('render');
+const rnd=(()=>{let s=7;return()=>(s=s*16807%2147483647)/2147483647})();
+const cl=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)),lp=(a,b,u)=>a+(b-a)*u;
+const rd=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});rd.setSize(W,H);rd.setPixelRatio(R?1:Math.min(devicePixelRatio,2));document.body.prepend(rd.domElement);
+const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(50,W/H,.1,100);
+const amb=new THREE.AmbientLight(0xffffff,.8),sun=new THREE.DirectionalLight(0xffffff,1);sun.position.set(5,8,4);sc.add(amb,sun);
+const M=(g,c,e=0)=>new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:e,flatShading:true}));
+const B=(w,h,d,c,e)=>M(new THREE.BoxGeometry(w,h,d),c,e);
+const G=()=>{const g=new THREE.Group();sc.add(g);return g};
+const ground=B(60,.2,60,0x2b2f3a);ground.position.y=-.1;sc.add(ground);
+// kota
+const city=G(),wins=[],torches=[];
+for(let x=-4;x<=4;x++)for(let z=-5;z<=1;z++){if(!x&&z>-1)continue;const h=1+rnd()*3.5,b=B(.9,h,.9,0x5b6478);b.position.set(x*1.5,h/2,z*1.5);city.add(b);
+ for(let k=0;k<3;k++){const w=B(.2,.25,.02,0xffd54f,1.2);w.position.set(x*1.5+(k-1)*.27,.5+rnd()*(h-.8),z*1.5+.46);w.off=1+rnd()*5;city.add(w);wins.push(w)}
+ if(rnd()<.18){const f=M(new THREE.ConeGeometry(.12,.35,5),0xff7a00,2);f.position.set(x*1.5+.5,.3,z*1.5+.8);f.on=5.5+rnd()*3.5;city.add(f);torches.push(f)}}
+// ponsel
+const phone=G(),pb=B(1,2,.12,0x111418),ps=B(.9,1.8,.02,0x4fc3f7,1);ps.position.z=.07;phone.add(pb,ps);phone.position.y=1.5;
+// kulkas
+const fr=G(),fb=B(1.6,3,1.2,0xdfe6ee),fd=B(.05,2.8,1.1,0xb0bec5);fd.position.set(.83,1.5,0);fb.position.y=1.5;fr.add(fb,fd);
+const food=[0,1,2].map(i=>{const f=B(.35,.35,.35,0x66bb6a,.3);f.position.set(-3+i*.7,.2,2);fr.add(f);return f});
+// rumah sakit
+const hs=G(),hb=B(4,2.4,2,0xeceff1),h1=B(.9,.25,.1,0xe53935,1.2),h2=B(.25,.9,.1,0xe53935,1.2);hb.position.y=1.2;h1.position.set(0,2.8,1.05);h2.position.set(0,2.8,1.05);hs.add(hb,h1,h2);
+const mach=[-2.4,-3.4,2.4].map((x,i)=>{const m=B(.8,1.2,.8,[0x26c6da,0x7e57c2,0x66bb6a][i],.6);m.position.set(x,.6,2.2);hs.add(m);return m});
+// ikon
+const ic=G(),icons=[0x42a5f5,0xab47bc,0x26a69a,0xef5350].map((c,i)=>{const m=B(1,1,1,c,.6);m.position.set(-2.7+i*1.8,2.2,0);ic.add(m);return m});
+const let_=B(.6,.4,.1,0xfff3e0);let_.position.set(-4,.4,2);ic.add(let_);
+// jam
+const ck=G(),cb=M(new THREE.TorusGeometry(1.6,.15,8,32),0xffca28,.4),hand=B(.1,1.3,.1,0xffffff,.8);hand.geometry.translate(0,.65,0);ck.add(cb,hand);ck.position.y=2.2;
+// bohlam
+const bu=G(),bs=M(new THREE.SphereGeometry(1,16,12),0xffe082,1.5),bn=B(.6,.7,.6,0x9e9e9e);bn.position.y=-1.1;bu.add(bs,bn);bu.position.y=2;
+const pl=new THREE.PointLight(0xffe082,0,12);pl.position.set(0,2.5,2);sc.add(pl);
+const SK=[0x87ceeb,0x1b2340,0x2a3140,0x1a2530,0x101626,0x120f20,0x080a10,0x1a1230];
+function setT(t){let i=0;while(i<7&&t>=T[i+1])i++;const lt=t-T[i];
+ const vis=(g,on)=>g.visible=on;vis(phone,i==0||i==5);vis(city,i==1||i==6);vis(fr,i==2);vis(hs,i==3);vis(ic,i==4);vis(ck,i==6);vis(bu,i==7);vis(ground,i!=0&&i!=2&&i!=4&&i!=5);
+ sc.background=new THREE.Color(i==1?new THREE.Color(0x87ceeb).lerp(new THREE.Color(0x0a0c18),cl(lt/6)):SK[i]);
+ amb.intensity=i==1?lp(.8,.12,cl(lt/6)):i==6?.12:.6;sun.intensity=i==1?lp(1,0,cl(lt/6)):.6;pl.intensity=i==7?2+Math.sin(t*5):0;
+ let ca=t*.12+i,r=9,hy=4,ty=1.5;
+ if(i==0||i==5){r=5;hy=2;ty=1.5;ps.material.emissiveIntensity=i==0?(lt<5.5?1+Math.sin(lt*22)*.6:cl(1-(lt-5.5)*2)):(lt<2.5?1+Math.random()*1.5:0);
+  phone.rotation.z=i==0&&lt<5.5?Math.sin(lt*70)*.06:0;phone.scale.setScalar(i==0?cl(1-(lt-7)*3,0,1):cl(1-(lt-3)*3,0,1));if(i==5)ps.material.color.setHex(lt<2.5?0xff4081:0x333333)}
+ if(i==1){r=lp(14,8,cl(lt/10));hy=lp(7,3,cl(lt/10));wins.forEach(w=>w.material.emissiveIntensity=lt<w.off?1.2:0);torches.forEach(f=>f.scale.setScalar(Math.max(.0001,(.8+Math.sin(t*30+f.on)*.2)*cl((lt-f.on)*2))))}
+ if(i==6){r=lp(14,26,cl(lt/5.8));hy=lp(5,14,cl(lt/5.8));wins.forEach(w=>w.material.emissiveIntensity=0);torches.forEach(f=>f.scale.setScalar(.8+Math.sin(t*30)*.2));hand.rotation.z=-lt*(lt<2.5?9:1.5);ck.position.set(0,2.5,5);ck.scale.setScalar(.8)}
+ if(i==2){r=7;hy=3;food.forEach(f=>{f.material.color.setHex(0x66bb6a).lerp(new THREE.Color(0x5d4037),cl(lt/4));f.rotation.y=lt});fr.scale.setScalar(cl(1-(lt-4.5)*1.5,.001,1));fd.rotation.y=-Math.min(lt,2)*.8;fd.position.x=.83+Math.min(lt,2)*.0}
+ if(i==3){r=9;hy=4;ty=1.3;h1.material.emissiveIntensity=h2.material.emissiveIntensity=lt>5.2?.15:1.2+Math.sin(lt*8)*.6;mach.forEach((m,k)=>m.scale.setScalar(cl(1-(lt-(2+k*1.6))*4,.001,1)))}
+ if(i==4){r=8;hy=3;icons.forEach((m,k)=>{m.scale.setScalar(cl(1-(lt-(1+k*1.2))*4,.001,1));m.rotation.y=lt*.8;m.position.y=2.2+Math.sin(lt*2+k)*.2});let_.position.x=-4+cl((lt-4)/5)*8}
+ if(i==7){r=7;hy=3;bu.scale.setScalar(1+Math.sin(t*5)*.06)}
+ cam.position.set(Math.sin(ca)*r*.5,hy,Math.cos(ca)*r*.5+(i==6?5:0));if(i==0||i==5)cam.position.set(Math.sin(lt*.3)*1.2,1.8,5);cam.lookAt(0,ty,i==6?5:0);
+ document.getElementById('cap').textContent=t<T[8]?CAP[i]:'';rd.render(sc,cam)}
+setT(0);
+// ===== SFX sintesis =====
+function tone(c,t,f1,f2,d,v,ty='sine'){const o=c.createOscillator(),g=c.createGain();o.type=ty;o.frequency.setValueAtTime(f1,t);o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(c.destination);o.start(t);o.stop(t+d)}
+function noise(c,t,d,v,f,sweep){const b=c.createBuffer(1,c.sampleRate*d,c.sampleRate),a=b.getChannelData(0);for(let k=0;k<a.length;k++)a[k]=Math.random()*2-1;const s=c.createBufferSource(),fl=c.createBiquadFilter(),g=c.createGain();s.buffer=b;fl.type='bandpass';fl.frequency.setValueAtTime(f,t);if(sweep)fl.frequency.exponentialRampToValueAtTime(sweep,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);s.connect(fl).connect(g).connect(c.destination);s.start(t)}
+const FX={alarm:(c,t)=>{for(let k=0;k<11;k++)tone(c,t+k*.5,1500,1500,.12,.25,'square'),tone(c,t+k*.5+.18,1500,1500,.12,.25,'square')},
+ off:(c,t)=>tone(c,t,900,90,.5,.35,'triangle'),whoosh:(c,t)=>noise(c,t,.9,.5,300,3000),boom:(c,t)=>{tone(c,t,120,30,1.2,.9);noise(c,t,.6,.3,200,60)},
+ torch:(c,t)=>{for(let k=0;k<8;k++)noise(c,t+k*.15,.12,.3,2500)},pop:(c,t)=>tone(c,t,300,900,.12,.5),rot:(c,t)=>tone(c,t,200,60,1.2,.3,'sawtooth'),
+ beep:(c,t)=>tone(c,t,1000,1000,.18,.35),flat:(c,t)=>tone(c,t,1000,1000,1.6,.3),tick:(c,t)=>noise(c,t,.05,.6,3500),
+ glitch:(c,t)=>{for(let k=0;k<10;k++)tone(c,t+k*.1,200+Math.random()*2000,100,.08,.25,'square')},ding:(c,t)=>{tone(c,t,1318,1318,1,.4);tone(c,t+.12,1760,1760,1.2,.35)}};
+const sched=(c,o=0)=>CUES.forEach(([t,k])=>FX[k](c,t+o));
+window.renderSfx=async()=>{const sr=44100,o=new OfflineAudioContext(1,sr*55,sr);sched(o);const d=(await o.startRendering()).getChannelData(0),n=d.length,b=new DataView(new ArrayBuffer(44+n*2));
+ const s=(p,x)=>[...x].forEach((ch,k)=>b.setUint8(p+k,ch.charCodeAt(0)));s(0,'RIFF');b.setUint32(4,36+n*2,true);s(8,'WAVEfmt ');b.setUint32(16,16,true);b.setUint16(20,1,true);b.setUint16(22,1,true);b.setUint32(24,sr,true);b.setUint32(28,sr*2,true);b.setUint16(32,2,true);b.setUint16(34,16,true);s(36,'data');b.setUint32(40,n*2,true);
+ for(let k=0;k<n;k++)b.setInt16(44+k*2,cl(d[k],-1,1)*32767,true);let r='';const u=new Uint8Array(b.buffer);for(let k=0;k<u.length;k+=8192)r+=String.fromCharCode(...u.subarray(k,k+8192));return btoa(r)};
+window.setT=setT;window.ready=true;
+// ===== Preview =====
+if(R)document.getElementById('go').remove();else document.getElementById('go').onclick=e=>{e.target.remove();const a=new Audio('voice.mp3'),c=new AudioContext();a.play();sched(c,c.currentTime+.05);
+ const loop=()=>{setT(a.currentTime);requestAnimationFrame(loop)};loop()};
+</script></body></html>
